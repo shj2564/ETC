@@ -24,12 +24,13 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          mkdir -p out/lib
+          mkdir -p out/lib out/lib64
           cp "$BT/apksigner" out/
           cp "$BT/zipalign" out/
           cp "$BT/lib/apksigner.jar" out/lib/
+          if [ -d "$BT/lib64" ]; then cp -a "$BT/lib64/." out/lib64/; fi
           chmod +x out/apksigner out/zipalign
-          sha256sum out/apksigner out/zipalign out/lib/apksigner.jar > out/SHA256SUMS.txt
+          find out -type f -print0 | sort -z | xargs -0 sha256sum > out/SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
           name: android-signing-tools
