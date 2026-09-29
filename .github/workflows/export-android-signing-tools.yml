@@ -1,0 +1,37 @@
+name: Export Android signing tools
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - ".github/workflows/export-android-signing-tools.yml"
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Locate Android build tools
+        shell: bash
+        run: |
+          set -euxo pipefail
+          BT="$(find "$ANDROID_HOME/build-tools" -mindepth 1 -maxdepth 1 -type d | sort -V | tail -1)"
+          echo "BT=$BT" >> "$GITHUB_ENV"
+          echo "Using $BT"
+          "$BT/apksigner" version
+          "$BT/zipalign" -h >/dev/null 2>&1 || true
+      - name: Package tools
+        shell: bash
+        run: |
+          set -euxo pipefail
+          mkdir -p out/lib
+          cp "$BT/apksigner" out/
+          cp "$BT/zipalign" out/
+          cp "$BT/lib/apksigner.jar" out/lib/
+          chmod +x out/apksigner out/zipalign
+          sha256sum out/apksigner out/zipalign out/lib/apksigner.jar > out/SHA256SUMS.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: android-signing-tools
+          path: out/
+          if-no-files-found: error
