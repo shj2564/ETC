@@ -24,12 +24,18 @@ jobs:
         shell: bash
         run: |
           set -euxo pipefail
-          mkdir -p out/lib out/lib64
+          mkdir -p out/lib out/lib64 out/smali
           cp "$BT/apksigner" out/
           cp "$BT/zipalign" out/
           cp "$BT/lib/apksigner.jar" out/lib/
           if [ -d "$BT/lib64" ]; then cp -a "$BT/lib64/." out/lib64/; fi
+          curl -fL --retry 3 -o out/smali/baksmali.jar \
+            https://github.com/PhantomZone54/JesusFreke_smali_Snapshots/releases/download/Snapshot/baksmali-2.5.2-cbd41d36-fat.jar
+          curl -fL --retry 3 -o out/smali/smali.jar \
+            https://github.com/PhantomZone54/JesusFreke_smali_Snapshots/releases/download/Snapshot/smali-2.5.2-cbd41d36-fat.jar
           chmod +x out/apksigner out/zipalign
+          java -jar out/smali/baksmali.jar --version
+          java -jar out/smali/smali.jar --version
           find out -type f -print0 | sort -z | xargs -0 sha256sum > out/SHA256SUMS.txt
       - uses: actions/upload-artifact@v4
         with:
