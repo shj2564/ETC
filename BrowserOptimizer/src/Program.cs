@@ -41,7 +41,10 @@ namespace SoNGBrowserOptimizer
                 if (!created) return;
                 Application.EnableVisualStyles();
                 Application.SetCompatibleTextRenderingDefault(false);
-                Application.Run(new MainForm());
+                // Windows Run registration supplies --tray; direct launches retain the normal window.
+                bool startInTray = args.Any(a => string.Equals(a, "--tray", StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(a, "/tray", StringComparison.OrdinalIgnoreCase));
+                Application.Run(new MainForm(startInTray));
             }
         }
     }
@@ -230,13 +233,16 @@ namespace SoNGBrowserOptimizer
         private readonly System.Windows.Forms.Timer timer;
         private readonly ActionButton allButton;
         private bool closing, loading, working;
+        private readonly bool startInTray;
+        private bool initialShowSuppressed;
         private DateTime lastAutomatic = DateTime.MinValue, lastSampleTime = DateTime.MinValue;
         private BrowserSnapshot priorChrome, priorEdge;
         private int consecutivePressure;
         private readonly string settingsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SoNG", "BrowserOptimizer");
         private const string StartupKeyName = "SoNG Browser Optimizer";
-        public MainForm()
+        public MainForm(bool startInTray)
         {
+            this.startInTray = startInTray;
             Text = "SoNG Browser Optimizer"; BackColor = Style.Base; ForeColor = Style.White;
             ClientSize = new Size(1000, 724); MinimumSize = MaximumSize = Size;
             FormBorderStyle = FormBorderStyle.FixedSingle; MaximizeBox = false;
@@ -245,7 +251,7 @@ namespace SoNGBrowserOptimizer
             Controls.Add(Style.Label("SoNG", 29, 17, 88, 35, 23, Style.Teal, true));
             Controls.Add(Style.Label("BROWSER OPTIMIZER", 119, 21, 484, 29, 17, Style.White, true));
             Controls.Add(Style.Label("Chrome · Edge  |  Windows 11 메모리 모니터링 및 안전한 작업 집합 정리", 31, 60, 816, 25, 9, Style.Muted));
-            var version = Style.Label("v1.1  ·  PORTABLE", 812, 24, 162, 22, 9, Style.Muted);
+            var version = Style.Label("v1.2  ·  PORTABLE", 812, 24, 162, 22, 9, Style.Muted);
             version.TextAlign = ContentAlignment.MiddleRight; Controls.Add(version);
 
             var sys = new CardPanel { Location = new Point(26, 105), Size = new Size(948, 105) }; Controls.Add(sys);
@@ -296,6 +302,8 @@ namespace SoNGBrowserOptimizer
             tray = new NotifyIcon { Icon = Icon, Text = "SoNG Browser Optimizer", Visible = true, ContextMenuStrip = menu };
             tray.DoubleClick += (s, e) => ShowWindow();
             loading = true; LoadSettings(); loading = false;
+            // Upgrade v1.1 registrations (EXE path only) to hidden tray startup.
+            if (runCheck.Checked) UpdateStartup(true);
             autoCheck.CheckedChanged += (s, e) => { if (!loading) { SaveSettings(); Log(autoCheck.Checked ? "스마트 자동 정리 ON" : "스마트 자동 정리 OFF"); } };
             runCheck.CheckedChanged += (s, e) => { if (!loading) { UpdateStartup(); SaveSettings(); } };
             threshold.ValueChanged += (s, e) => { if (!loading) SaveSettings(); };
@@ -310,6 +318,19 @@ namespace SoNGBrowserOptimizer
             return new NumericUpDown { Minimum = min, Maximum = max, Value = val, Location = new Point(x, y),
                 Size = new Size(width, 27), BorderStyle = BorderStyle.FixedSingle, BackColor = Style.Panel2,
                 ForeColor = Style.White, Font = Style.F(10), TextAlign = HorizontalAlignment.Center };
+        }
+        // Suppress the very first Show before Windows creates a visible window or taskbar entry.
+        // Force creation of a hidden HWND so UI-thread BeginInvoke and the tray remain responsive.
+        protected override void SetVisibleCore(bool value)
+        {
+            if (value && startInTray && !initialShowSuppressed)
+            {
+                initialShowSuppressed = true;
+                if (!IsHandleCreated) { IntPtr unusedHandle = Handle; }
+                base.SetVisibleCore(false);
+                return;
+            }
+            base.SetVisibleCore(value);
         }
         private void ShowWindow() { Show(); WindowState = FormWindowState.Normal; Activate(); }
         protected override void OnResize(EventArgs e) { base.OnResize(e); if (WindowState == FormWindowState.Minimized) Hide(); }
@@ -350,22 +371,28 @@ namespace SoNGBrowserOptimizer
             }
             catch (Exception ex) { Log("설정 저장 실패: " + ex.Message); }
         }
-        private void UpdateStartup()
+        private void UpdateStartup(bool silent = false)
         {
             try
             {
                 using (RegistryKey key = Registry.CurrentUser.OpenSubKey(@"Software\Microsoft\Windows\CurrentVersion\Run", true))
                 {
                     if (key == null) throw new InvalidOperationException("시작 프로그램 레지스트리를 열 수 없습니다.");
-                    string value = "\"" + Application.ExecutablePath + "\"";
-                    if (runCheck.Checked) key.SetValue(StartupKeyName, value, RegistryValueKind.String);
-                    else
+                    string oldValue = key.GetValue(StartupKeyName, "") as string ?? "";
+                    string previous = "\"" + Application.ExecutablePath + "\"";
+                    string command = previous + " --tray";
+                    if (runCheck.Checked)
                     {
-                        string old = key.GetValue(StartupKeyName, "") as string;
-                        if (string.Equals(old, value, StringComparison.OrdinalIgnoreCase)) key.DeleteValue(StartupKeyName, false);
+                        if (!string.Equals(oldValue, command, StringComparison.OrdinalIgnoreCase))
+                            key.SetValue(StartupKeyName, command, RegistryValueKind.String);
+                    }
+                    else if (string.Equals(oldValue, command, StringComparison.OrdinalIgnoreCase) ||
+                             string.Equals(oldValue, previous, StringComparison.OrdinalIgnoreCase))
+                    {
+                        key.DeleteValue(StartupKeyName, false);
                     }
                 }
-                Log(runCheck.Checked ? "로그인 시 자동 시작 등록" : "로그인 시 자동 시작 해제");
+                if (!silent) Log(runCheck.Checked ? "로그인 시 트레이 자동 시작 등록" : "로그인 시 자동 시작 해제");
             }
             catch (Exception ex) { Log("시작 설정 실패: " + ex.Message); }
         }

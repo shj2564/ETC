@@ -35,6 +35,22 @@ jobs:
           if ($result -notmatch 'SELFTEST=OK') { throw 'Self-test failed' }
           if ($result -notmatch 'NoProcessTrimmed=True') { throw 'Self-test unexpectedly trimmed a process' }
 
+      - name: Verify hidden tray launch (no window)
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $exe = Join-Path $PWD 'BrowserOptimizer/dist/SoNG_Browser_Optimizer.exe'
+          $process = Start-Process -FilePath $exe -ArgumentList '--tray' -PassThru
+          try {
+            Start-Sleep -Seconds 3
+            $process.Refresh()
+            if ($process.HasExited) { throw "Tray process exited unexpectedly with $($process.ExitCode)" }
+            if ($process.MainWindowHandle -ne [IntPtr]::Zero) { throw 'Tray mode unexpectedly created a visible main window' }
+            Write-Host "TRAY_BOOT=OK; ProcessAlive=True; MainWindowHandle=0"
+          } finally {
+            if (!$process.HasExited) { Stop-Process -Id $process.Id -Force -ErrorAction SilentlyContinue }
+          }
+
       - name: Upload Windows EXE
         uses: actions/upload-artifact@v4
         with:
@@ -53,6 +69,6 @@ jobs:
           git add BrowserOptimizer/dist/SoNG_Browser_Optimizer.exe BrowserOptimizer/assets/SoNG_Browser_Optimizer.ico
           git diff --cached --quiet
           if ($LASTEXITCODE -ne 0) {
-            git commit -m 'build: publish icon-enabled SoNG Browser Optimizer v1.1 [skip ci]'
+            git commit -m 'build: publish SoNG Browser Optimizer v1.2 tray startup [skip ci]'
             git push origin HEAD:main
           }

@@ -1,4 +1,4 @@
-# SoNG Browser Optimizer v1.1
+# SoNG Browser Optimizer v1.2
 
 Windows 11에서 Google Chrome(`chrome.exe`) 및 Microsoft Edge(`msedge.exe`) 프로세스의 메모리 상태를 확인하고 필요할 때 **작업 집합(Working Set) 정리**를 실행하는 독립 실행형 트레이 프로그램입니다.
 
@@ -13,7 +13,7 @@ Windows 11에서 Google Chrome(`chrome.exe`) 및 Microsoft Edge(`msedge.exe`) �
 - Chrome / Edge 별 실행 프로세스 개수, 작업 집합 합계, Private Bytes, 대략적 CPU 사용률 표시
 - 수동 개별 정리 및 양쪽 브라우저 정리
 - 스마트 자동 정리(기본 OFF): **시스템 RAM 사용률 85% 이상이 2회 연속 확인**되고, 브라우저가 전경에 없고, CPU 사용률이 낮고, 대상 작업 집합 합계가 512MB 이상일 때 실행. 기본 최소 간격 15분. 한 번에 한 종류의 브라우저만 정리.
-- 사용자가 선택했을 때만 현재 사용자 Windows 로그인 자동 시작 등록 (`HKCU\...\Run`)
+- 사용자가 선택했을 때만 현재 사용자 Windows 로그인 자동 시작 등록 (`HKCU\...\Run`). **로그인으로 시작할 때는 메인 창을 띄우지 않고 트레이에만 실행**하며, 직접 EXE를 열면 기존처럼 창을 표시
 - 창을 닫거나 최소화하면 시스템 트레이에 상주하며, 트레이의 `완전히 종료`로 종료
 - CMD/PowerShell 창 없는 WinForms 네이티브 EXE (Windows 기본 .NET Framework 4.8 사용)
 - 독립 아이콘 리소스 내장(16/24/32/48/64/128/256px), 트레이와 EXE 아이콘 일치
@@ -22,7 +22,7 @@ Windows 11에서 Google Chrome(`chrome.exe`) 및 Microsoft Edge(`msedge.exe`) �
 1. `SoNG_Browser_Optimizer.exe`를 원하는 **고정 폴더**에 놓고 실행합니다. 관리자 권한이 필요하지 않습니다.
 2. 먼저 수동 버튼으로 효과를 확인하세요.
 3. 필요하면 `스마트 자동 정리 사용`에 체크하고 임계값 및 최소 간격을 조정하세요.
-4. 로그인 시 자동 실행을 원하면 `Windows 로그인 시 시작`에 체크하세요.
+4. 로그인 시 자동 실행을 원하면 `Windows 로그인 시 시작`에 체크하세요. 로그인 시작에는 `--tray` 인수를 사용해 **창을 띄우지 않고 시스템 트레이로 시작**합니다. 이전 v1.1에서 자동 실행을 켜둔 경우에도 업데이트 후 프로그램을 한 번 직접 실행하면 기존 등록값을 자동으로 변경합니다.
 5. 종료는 트레이 아이콘을 오른쪽 클릭 → `완전히 종료`.
 
 ## 메모리 수치 해석(중요)
@@ -38,6 +38,7 @@ Windows 11에서 Google Chrome(`chrome.exe`) 및 Microsoft Edge(`msedge.exe`) �
 - 기본 상태에서는 **자동 정리가 꺼져 있고**, 로그인 자동 시작도 꺼져 있습니다.
 - 설정 저장: `%LOCALAPPDATA%\SoNG\BrowserOptimizer\settings.ini`
 - 자동 시작 선택 시만 `HKCU\Software\Microsoft\Windows\CurrentVersion\Run`의 `SoNG Browser Optimizer` 값을 변경합니다.
+- 로그인 시작 시 `"EXE경로" --tray`가 등록됩니다. 일반 실행에서는 창이 표시되고, 트레이 아이콘을 더블클릭하거나 `창 열기`를 눌러 창을 볼 수 있습니다.
 - 트레이 메뉴의 `완전히 종료`는 시작프로그램 등록을 해제하지 않습니다. 앱에서 체크 해제 후 종료하세요.
 
 ## 빌드 (Windows 11 / .NET Framework 4.x)
