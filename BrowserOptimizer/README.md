@@ -1,11 +1,11 @@
-# SoNG Browser Optimizer v1.0
+# SoNG Browser Optimizer v1.1
 
 Windows 11에서 Google Chrome(`chrome.exe`) 및 Microsoft Edge(`msedge.exe`) 프로세스의 메모리 상태를 확인하고 필요할 때 **작업 집합(Working Set) 정리**를 실행하는 독립 실행형 트레이 프로그램입니다.
 
 ## 다운로드 및 자동 빌드
 - **[Windows EXE 바로 다운로드](https://github.com/shj2564/ETC/raw/refs/heads/main/BrowserOptimizer/dist/SoNG_Browser_Optimizer.exe)** (Windows 11 / .NET Framework 4.8)
 - [C# 원본 소스](src/Program.cs) · [로컬 빌드 스크립트](build.ps1) · [GitHub Actions 빌드 결과](https://github.com/shj2564/ETC/actions/workflows/build-browser-optimizer.yml)
-- 저장소에 포함된 EXE의 SHA-256: `4341CD6FD383BDCB0A91F62691DDB97444B6D55A5580A8DB2AEB38C128476FA9`
+- v1.1에서 남색 모니터·청소 브러시 아이콘을 EXE, 창 제목표시줄, 트레이에 적용했습니다. [아이콘(.ico)](assets/SoNG_Browser_Optimizer.ico)과 [아이콘 생성 소스](tools/IconMaker.cs)도 제공됩니다.
 - GitHub Actions는 Windows 환경에서 컴파일한 뒤, **브라우저 메모리를 건드리지 않는 읽기 전용 자체 테스트**를 수행하고 결과를 아티팩트로 저장합니다.
 - 이 프로그램은 기본 설정에서 자동 정리가 꺼져 있습니다. 실제 RAM 절약 효과는 사용 환경에 따라 다르며, 수동 정리 시 작업 집합 표시량 감소와 구분해서 확인하세요.
 
@@ -16,6 +16,7 @@ Windows 11에서 Google Chrome(`chrome.exe`) 및 Microsoft Edge(`msedge.exe`) �
 - 사용자가 선택했을 때만 현재 사용자 Windows 로그인 자동 시작 등록 (`HKCU\...\Run`)
 - 창을 닫거나 최소화하면 시스템 트레이에 상주하며, 트레이의 `완전히 종료`로 종료
 - CMD/PowerShell 창 없는 WinForms 네이티브 EXE (Windows 기본 .NET Framework 4.8 사용)
+- 독립 아이콘 리소스 내장(16/24/32/48/64/128/256px), 트레이와 EXE 아이콘 일치
 
 ## 사용법
 1. `SoNG_Browser_Optimizer.exe`를 원하는 **고정 폴더**에 놓고 실행합니다. 관리자 권한이 필요하지 않습니다.
@@ -40,10 +41,10 @@ Windows 11에서 Google Chrome(`chrome.exe`) 및 Microsoft Edge(`msedge.exe`) �
 - 트레이 메뉴의 `완전히 종료`는 시작프로그램 등록을 해제하지 않습니다. 앱에서 체크 해제 후 종료하세요.
 
 ## 빌드 (Windows 11 / .NET Framework 4.x)
-관리자 권한 없이도 Windows 제공 C# 컴파일러로 빌드 가능합니다.
+관리자 권한 없이 Windows 제공 C# 컴파일러로 재현 가능한 아이콘 포함 EXE 빌드가 가능합니다.
 
 ```powershell
-& "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe" /nologo /target:winexe /platform:anycpu /optimize+ /out:SoNG_Browser_Optimizer.exe /reference:System.Windows.Forms.dll /reference:System.Drawing.dll /reference:System.Core.dll src\Program.cs
+.\build.ps1
 ```
 
 ## 실행파일 무변경 테스트

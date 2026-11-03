@@ -241,11 +241,11 @@ namespace SoNGBrowserOptimizer
             ClientSize = new Size(1000, 724); MinimumSize = MaximumSize = Size;
             FormBorderStyle = FormBorderStyle.FixedSingle; MaximizeBox = false;
             Font = Style.F(9); StartPosition = FormStartPosition.CenterScreen;
-            Icon = BuildIcon();
+            Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath) ?? SystemIcons.Application;
             Controls.Add(Style.Label("SoNG", 29, 17, 88, 35, 23, Style.Teal, true));
             Controls.Add(Style.Label("BROWSER OPTIMIZER", 119, 21, 484, 29, 17, Style.White, true));
             Controls.Add(Style.Label("Chrome · Edge  |  Windows 11 메모리 모니터링 및 안전한 작업 집합 정리", 31, 60, 816, 25, 9, Style.Muted));
-            var version = Style.Label("v1.0  ·  PORTABLE", 812, 24, 162, 22, 9, Style.Muted);
+            var version = Style.Label("v1.1  ·  PORTABLE", 812, 24, 162, 22, 9, Style.Muted);
             version.TextAlign = ContentAlignment.MiddleRight; Controls.Add(version);
 
             var sys = new CardPanel { Location = new Point(26, 105), Size = new Size(948, 105) }; Controls.Add(sys);
@@ -311,27 +311,6 @@ namespace SoNGBrowserOptimizer
                 Size = new Size(width, 27), BorderStyle = BorderStyle.FixedSingle, BackColor = Style.Panel2,
                 ForeColor = Style.White, Font = Style.F(10), TextAlign = HorizontalAlignment.Center };
         }
-        private Icon BuildIcon()
-        {
-            using (var bmp = new Bitmap(64, 64))
-            {
-                using (Graphics g = Graphics.FromImage(bmp))
-                {
-                    g.SmoothingMode = SmoothingMode.AntiAlias; g.Clear(Color.Transparent);
-                    using (Brush b = new SolidBrush(Style.Teal)) g.FillEllipse(b, 1, 1, 62, 62);
-                    using (Font f = new Font("Segoe UI", 31, FontStyle.Bold))
-                    using (Brush b = new SolidBrush(Style.Base))
-                    {
-                        var fmt = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-                        g.DrawString("S", f, b, new RectangleF(0, -3, 64, 67), fmt);
-                    }
-                }
-                IntPtr h = bmp.GetHicon();
-                try { using (Icon temporary = Icon.FromHandle(h)) return (Icon)temporary.Clone(); }
-                finally { DestroyIcon(h); }
-            }
-        }
-        [DllImport("user32.dll", SetLastError = true)] private static extern bool DestroyIcon(IntPtr h);
         private void ShowWindow() { Show(); WindowState = FormWindowState.Normal; Activate(); }
         protected override void OnResize(EventArgs e) { base.OnResize(e); if (WindowState == FormWindowState.Minimized) Hide(); }
         protected override void OnFormClosing(FormClosingEventArgs e)

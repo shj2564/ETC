@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-win11:
@@ -42,3 +42,17 @@ jobs:
           path: BrowserOptimizer/dist/SoNG_Browser_Optimizer.exe
           if-no-files-found: error
           retention-days: 30
+
+      - name: Publish icon-enhanced EXE to repository
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add BrowserOptimizer/dist/SoNG_Browser_Optimizer.exe BrowserOptimizer/assets/SoNG_Browser_Optimizer.ico
+          git diff --cached --quiet
+          if ($LASTEXITCODE -ne 0) {
+            git commit -m 'build: publish icon-enabled SoNG Browser Optimizer v1.1 [skip ci]'
+            git push origin HEAD:main
+          }
