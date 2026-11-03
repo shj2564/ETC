@@ -27,7 +27,8 @@ jobs:
           $ErrorActionPreference = 'Stop'
           $exe = Join-Path $PWD 'BrowserOptimizer/dist/SoNG_Browser_Optimizer.exe'
           $out = Join-Path $env:RUNNER_TEMP 'browser_optimizer_selftest.txt'
-          & $exe ("/selftest=" + $out)
+          $process = Start-Process -FilePath $exe -ArgumentList ("/selftest=" + $out) -PassThru -Wait
+          if ($process.ExitCode -ne 0) { throw "Self-test exited with code $($process.ExitCode)" }
           if (!(Test-Path $out)) { throw 'Self-test did not produce output' }
           $result = Get-Content -Path $out -Raw
           Write-Host $result
