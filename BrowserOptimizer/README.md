@@ -2,6 +2,13 @@
 
 Windows 11에서 Google Chrome(`chrome.exe`) 및 Microsoft Edge(`msedge.exe`) 프로세스의 메모리 상태를 확인하고 필요할 때 **작업 집합(Working Set) 정리**를 실행하는 독립 실행형 트레이 프로그램입니다.
 
+## 다운로드 및 자동 빌드
+- **[Windows EXE 바로 다운로드](https://github.com/shj2564/ETC/raw/refs/heads/main/BrowserOptimizer/dist/SoNG_Browser_Optimizer.exe)** (Windows 11 / .NET Framework 4.8)
+- [C# 원본 소스](src/Program.cs) · [로컬 빌드 스크립트](build.ps1) · [GitHub Actions 빌드 결과](https://github.com/shj2564/ETC/actions/workflows/build-browser-optimizer.yml)
+- 저장소에 포함된 EXE의 SHA-256: `4341CD6FD383BDCB0A91F62691DDB97444B6D55A5580A8DB2AEB38C128476FA9`
+- GitHub Actions는 Windows 환경에서 컴파일한 뒤, **브라우저 메모리를 건드리지 않는 읽기 전용 자체 테스트**를 수행하고 결과를 아티팩트로 저장합니다.
+- 이 프로그램은 기본 설정에서 자동 정리가 꺼져 있습니다. 실제 RAM 절약 효과는 사용 환경에 따라 다르며, 수동 정리 시 작업 집합 표시량 감소와 구분해서 확인하세요.
+
 ## 주요 기능
 - Chrome / Edge 별 실행 프로세스 개수, 작업 집합 합계, Private Bytes, 대략적 CPU 사용률 표시
 - 수동 개별 정리 및 양쪽 브라우저 정리
